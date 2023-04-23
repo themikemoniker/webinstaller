@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+    <head>
+        <title>postmarketOS // Web flasher</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://build.postmarketos.org/static/style.css">
+        <link rel="stylesheet" href="https://build.postmarketos.org/static/images.css">
+        <link rel="shortcut icon" href="https://build.postmarketos.org/static/favicon_images.ico">
+        <style>
+            button {
+                background: #009900;
+                color: white;
+                border: none;
+                border-radius: 7px;
+                margin-bottom: 4px;
+                padding: 4px 8px;
+            }
+
+            table#devices {
+                background: #eee;
+                width: 100%;
+            }
+
+            span.release {
+                margin-left: 4px;
+            }
+
+            div.spinner {
+                border: 3px solid #ddd;
+                border-top: 3px solid #090;
+                border-radius: 50%;
+                width: 10px;
+                height: 10px;
+                animation: spin 1.5s linear infinite;
+            }
+
+            .boxes {
+                display: flex;
+                gap: 20px;
+            }
+
+            .boxes .box {
+                background: #eee;
+                flex-grow: 1;
+                width: 33%;
+                padding: 10px;
+            }
+
+            h3 {
+                text-align: center;
+                margin-top: 0;
+
+            }
+
+            table.fancy {
+                border: 1px solid #aaa;
+                width: 100%;
+            }
+
+            table.fancy td {
+                border-bottom: 1px solid #eee;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header class="header">
+            <a class="logo" name="^" href="https://images.postmarketos.org/bpo">
+                <img src="https://build.postmarketos.org/static/logo.svg">
+                <span>postmarketOS</span>
+            </a>
+            <div class="badge">
+                Web flasher
+            </div>
+        </header>
+        <main class="main">
+            <div id="nosupport" style="display: none;">
+                <h1>Unsupported browser</h1>
+                <p>
+                    The current browser does not support WebUSB which is required for the web flasher to function.
+                </p>
+            </div>
+            <noscript>
+                <h1>Javascript required</h1>
+                <p>This feature requires javascript and support for WebUSB</p>
+            </noscript>
+            <div id="supported" style="display: none;">
+                <h1>Web Flasher</h1>
+                <p>The web flasher uses WebUSB to flash a postmarketOS image to your device</p>
+                <h2>Connected devices</h2>
+                <button id="request-device">Give access</button>
+                <table id="devices">
+
+                </table>
+            </div>
+            <div id="selection" style="display: none;">
+                <h2>Image selection</h2>
+                <div class="boxes">
+                    <div class="deviceinfo box">
+                        <h3 id="select-device-name"></h3>
+                    </div>
+                    <div class="edge box">
+                        <h3>Latest edge</h3>
+                        <table id="edge-images"></table>
+                    </div>
+                    <div class="stable box">
+                        <h3>Latest stable</h3>
+                        <table id="stable-images"></table>
+                    </div>
+                </div>
+                <div class="old" style="margin-top: 48px">
+                    <h3>All images</h3>
+                    <table id="old-images" class="fancy"></table>
+                </div>
+            </div>
+            <div id="flasher" style="display: none;">
+                <h2>Flashing</h2>
+                <ol id="steps"></ol>
+            </div>
+        </main>
+        <footer>
+            <div class="source">
+                <a href="https://postmarketos.org/source-code/">source</a>
+            </div>
+            <div class="copyright">
+                &copy; 2022 postmarketOS contributors
+            </div>
+        </footer>
+    </body>
+    <script src="vendor/xzwasm.min.js"></script>
+    <script src="sparse.js"></script>
+    <script src="flasher.js"></script>
+</html>
