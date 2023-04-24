@@ -19,6 +19,7 @@
 
             table#devices {
                 background: #eee;
+                color: black;
                 width: 100%;
             }
 
@@ -42,6 +43,7 @@
 
             .boxes .box {
                 background: #eee;
+                color: black;
                 flex-grow: 1;
                 padding: 10px;
             }
@@ -53,8 +55,9 @@
             }
 
             table.fancy {
-                border: 1px solid #aaa;
                 width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
             }
 
             table.fancy th {
@@ -82,6 +85,22 @@
 
                 div.boxes {
                     flex-direction: column;
+                }
+            }
+
+            @media (prefers-color-scheme: dark) {
+                table#devices {
+                    background: #222;
+                    color: white;
+                }
+
+                .boxes .box {
+                    background: #222;
+                    color: white;
+                }
+
+                table.fancy td {
+                    border-bottom: 1px solid #000;
                 }
             }
         </style>
