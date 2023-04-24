@@ -81,6 +81,11 @@
                 }
             }
 
+            div.error {
+                border: 1px solid red;
+                padding: 20px;
+            }
+
             @media screen and (max-width: 710px) {
                 .col-product select {
                     display: block;
@@ -190,6 +195,7 @@
                 <h2>Flashing</h2>
                 <button id="start">Start flashing</button>
                 <ol id="steps"></ol>
+                <div id="flasher-error"></div>
             </div>
         </main>
         <footer>

@@ -105,6 +105,12 @@ function filterReleases(codename) {
     return result;
 }
 
+function flasherError(message) {
+    const div = document.getElementById('flasher-error');
+    div.classList.add('error');
+    div.innerHTML = message;
+}
+
 async function runScript(device, di, image, script) {
     const steplist = document.getElementById('steps');
     const startButton = document.getElementById('start');
@@ -127,10 +133,19 @@ async function runScript(device, di, image, script) {
             }
 
             if ("cmd" in step) {
-                let result = await fastbootCommand(device, step['cmd'])
-                if (result[0] !== 'OKAY') {
-                    stepElem[i].style.color = '#f00';
-                    return;
+                try {
+                    let result = await fastbootCommand(device, step['cmd'])
+                    if (result[0] !== 'OKAY') {
+                        stepElem[i].style.color = '#f00';
+                        flasherError("Fastboot command failed: " + step['cmd'] + '<br>' + result[1]);
+                        return;
+                    }
+                } catch (err) {
+                    if (err instanceof DOMException) {
+                        stepElem[i].style.color = '#f00';
+                        flasherError("Fastboot command failed: <br>" + err.message);
+                        return;
+                    }
                 }
             } else if ("flash" in step) {
                 const suffix = step["flash"];
@@ -167,38 +182,51 @@ async function runScript(device, di, image, script) {
                 ss_dl.appendChild(dlprogress);
                 ss_flash.appendChild(flashprogress);
 
-                const xzResponse = await fetch(url);
+                try {
+                    const xzResponse = await fetch(url);
 
-                const contentLength = xzResponse.headers.get('content-length');
-                dlprogress.max = parseInt(contentLength, 10);
-                let received = 0;
-                const res = new Response(new ReadableStream({
-                    async start(controller) {
-                        const reader = xzResponse.body.getReader();
-                        for (; ;) {
-                            const {done, value} = await reader.read();
-                            if (done) break;
-                            received += value.byteLength;
-                            dlprogress.value = received;
-                            if (dlprogress.value === dlprogress.max) {
-                                ss_dl.style.color = '#ddd';
-                                ss_up.style.color = '#090';
+                    const contentLength = xzResponse.headers.get('content-length');
+                    dlprogress.max = parseInt(contentLength, 10);
+                    let received = 0;
+                    const res = new Response(new ReadableStream({
+                        async start(controller) {
+                            const reader = xzResponse.body.getReader();
+                            for (; ;) {
+                                const {done, value} = await reader.read();
+                                if (done) break;
+                                received += value.byteLength;
+                                dlprogress.value = received;
+                                if (dlprogress.value === dlprogress.max) {
+                                    ss_dl.style.color = '#ddd';
+                                    ss_up.style.color = '#090';
+                                }
+                                controller.enqueue(value);
                             }
-                            controller.enqueue(value);
+                            controller.close();
                         }
-                        controller.close();
+                    }));
+
+
+                    const reader = new xzwasm.XzReadableStream(res.body);
+                    await fastbootFlash(device, step['partition'], reader, rawSize, function (progress) {
+                        flashprogress.value = progress * 100;
+                        ss_up.style.color = '#ddd';
+                        ss_flash.style.color = '#090';
+                    });
+
+                    stepElem[i].removeChild(substeps);
+                } catch (err) {
+                    if (err instanceof TypeError) {
+                        if (err.message === "Failed to fetch") {
+                            ss_dl.style.color = '#F00';
+                            flasherError("Failed to download the image: <br>" + err.message + '<br>URL: <a href="' + url + '">' + url + '</a>');
+                        }
+                    } else if (err instanceof DOMException) {
+                        ss_flash.style.color = '#F00';
+                        flasherError("Fastboot failure: <br>" + err.message);
                     }
-                }));
-
-
-                const reader = new xzwasm.XzReadableStream(res.body);
-                await fastbootFlash(device, step['partition'], reader, rawSize, function (progress) {
-                    flashprogress.value = progress * 100;
-                    ss_up.style.color = '#ddd';
-                    ss_flash.style.color = '#090';
-                });
-
-                stepElem[i].removeChild(substeps);
+                    throw new Error("Flasher failed");
+                }
             }
         }
     });
