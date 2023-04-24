@@ -80,28 +80,7 @@ function filterReleases(codename) {
     return result;
 }
 
-function openDB() {
-    return new Promise(function (resolve, reject) {
-        const dbReq = indexedDB.open("cache", 1);
-        dbReq.onerror = (event) => {
-            console.error("DB storage not allowed");
-            reject("Error opening database");
-        };
-        dbReq.onsuccess = (event) => {
-            let db = event.target.result;
-            resolve(db);
-        };
-        dbReq.onupgradeneeded = (event) => {
-            event.target.result.createObjectStore("images", {keyPath: "name"});
-        }
-    });
-}
-
-
 async function runScript(device, di, image, script) {
-    let db = await openDB();
-    // Request some scratch space
-
     const steplist = document.getElementById('steps');
     let stepElem = {};
     for (let i = 0; i < script.length; i++) {
