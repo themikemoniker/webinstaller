@@ -58,6 +58,10 @@
                 width: 100%;
             }
 
+            table.fancy th {
+                text-align: left;
+            }
+
             table.fancy td {
                 border-bottom: 1px solid #eee;
             }
@@ -95,11 +99,24 @@
             </noscript>
             <div id="supported" style="display: none;">
                 <h1>Web Flasher</h1>
-                <p>The web flasher uses WebUSB to flash a postmarketOS image to your device</p>
+                <p>
+                    The web flasher uses WebUSB to flash a postmarketOS image to your device.
+                </p>
                 <h2>Connected devices</h2>
+                <p>
+                    Put your device in fastboot mode and use the "Give access" button to allow the flasher to control
+                    it.
+                </p>
                 <button id="request-device">Give access</button>
                 <table id="devices">
-
+                </table>
+                <h4>Supported devices</h4>
+                <p>This is a list of all the devices that are currently supported in this flasher</p>
+                <table id="supporteddevices" class="fancy">
+                    <tr>
+                        <th>Name</th>
+                        <th>Codename</th>
+                    </tr>
                 </table>
             </div>
             <div id="selection" style="display: none;">

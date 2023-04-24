@@ -11,37 +11,34 @@ const IfName = {
     'sxmo-de-dwm': 'SXMO Dwm',
 }
 
-const deviceinfo = [{
-    'name': 'oneplus-enchilada',
-    'nicename': 'OnePlus 6',
-    'filter': {
-        'product': 'sdm845'
+const deviceinfo = [
+    {
+        'name': 'oneplus-enchilada',
+        'nicename': 'OnePlus 6',
+        'filter': {
+            'product': 'sdm845'
+        },
+        'script': [
+            {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+            {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+            {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+            {"cmd": "reboot", name: "Reboot"},
+        ]
     },
-    'script': [
-        {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
-        {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
-        {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
-        {"cmd": "reboot", name: "Reboot"},
-    ]
-}, {
-    'name': 'shift-axolotl',
-    'nicename': 'SHIFT 6MQ',
-    'filter': {
-        'product': 'sdm845'
-    },
-    'script': [
-        {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
-        {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
-        {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
-        {"cmd": "reboot", name: "Reboot"},
-    ]
-}, {
-    'name': 'lg-hammerhead',
-    'nicename': 'Nexus 5',
-    'filter': {
-        'product': 'hammerhead'
+    {
+        'name': 'shift-axolotl',
+        'nicename': 'SHIFT 6MQ',
+        'filter': {
+            'product': 'sdm845'
+        },
+        'script': [
+            {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+            {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+            {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+            {"cmd": "reboot", name: "Reboot"},
+        ]
     }
-}];
+];
 
 function readableFileSize(size) {
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -680,4 +677,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         bpo = data;
         updateReleases();
     });
+
+    const suppTable = document.getElementById('supporteddevices');
+    for (let i = 0; i < deviceinfo.length; i++) {
+        const di = deviceinfo[i];
+        const row = document.createElement('TR');
+        const td_name = document.createElement('TD');
+        td_name.innerText = di['nicename'];
+        row.appendChild(td_name);
+        const td_codename = document.createElement('TD');
+        td_codename.innerText = di['name'];
+        row.appendChild(td_codename);
+        suppTable.appendChild(row);
+    }
 });
