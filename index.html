@@ -164,18 +164,22 @@
                     <div class="deviceinfo box">
                         <h3 id="select-device-name"></h3>
                     </div>
-                    <div class="edge box">
-                        <h3>Latest edge</h3>
-                        <table id="edge-images"></table>
-                    </div>
                     <div class="stable box">
                         <h3>Latest stable</h3>
+                        <p>Recommended builds for trying out postmarketOS</p>
                         <table id="stable-images"></table>
+                    </div>
+                    <div class="edge box">
+                        <h3>Latest edge</h3>
+                        <p>Untested experimental builds</p>
+                        <table id="edge-images"></table>
                     </div>
                 </div>
                 <div class="old" style="margin-top: 48px">
-                    <h3>All images</h3>
-                    <table id="old-images" class="fancy"></table>
+                    <details>
+                        <summary>All images</summary>
+                        <table id="old-images" class="fancy"></table>
+                    </details>
                 </div>
             </div>
             <div id="flasher" style="display: none;">
