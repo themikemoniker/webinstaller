@@ -49,7 +49,20 @@ const deviceinfo = [
             {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
             {"cmd": "reboot", name: "Reboot"},
         ]
-    }
+    },
+    {
+        'name': 'fairphone-fp4',
+        'nicename': 'Fairphone 4',
+        'filter': {
+            'product': 'FP4'
+        },
+        'script': [
+            {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+            {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+            {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+            {"cmd": "reboot", name: "Reboot"},
+        ]
+    },
 ];
 
 function readableFileSize(size) {
