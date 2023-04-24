@@ -37,6 +37,18 @@ const deviceinfo = [
             {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
             {"cmd": "reboot", name: "Reboot"},
         ]
+    },
+    {
+        'name': 'xiaomi-scorpio',
+        'nicename': 'Xiaomi Mi Note 2',
+        'filter': {
+            'product': 'MSM8996_A4',
+        },
+        'script': [
+            {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+            {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+            {"cmd": "reboot", name: "Reboot"},
+        ]
     }
 ];
 
@@ -539,7 +551,14 @@ async function onConnectDevice(device) {
     if (slot === "") {
         slot = undefined;
     }
-    const unlocked = await fastbootGetvar(device, "unlocked") === "yes";
+    let unlocked = await fastbootGetvar(device, "unlocked");
+    if (unlocked === "yes") {
+        unlocked = true;
+    } else if (unlocked === undefined || unlocked === "") {
+        unlocked = true;
+    } else {
+        unlocked = false;
+    }
 
 
     let codename = null;
