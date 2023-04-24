@@ -13,6 +13,19 @@ const IfName = {
 
 const deviceinfo = [{
     'name': 'oneplus-enchilada',
+    'nicename': 'OnePlus 6',
+    'filter': {
+        'product': 'sdm845'
+    },
+    'script': [
+        {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+        {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+        {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+        {"cmd": "reboot", name: "Reboot"},
+    ]
+}, {
+    'name': 'shift-axolotl',
+    'nicename': 'SHIFT 6MQ',
     'filter': {
         'product': 'sdm845'
     },
@@ -24,6 +37,7 @@ const deviceinfo = [{
     ]
 }, {
     'name': 'lg-hammerhead',
+    'nicename': 'Nexus 5',
     'filter': {
         'product': 'hammerhead'
     }
@@ -120,12 +134,35 @@ async function runScript(device, di, image, script) {
             const url = image[suffix].url;
             const rawSize = image[suffix].size;
             console.log("Flashing", url);
+
+            const substeps = document.createElement('OL');
+            substeps.style.display = 'block';
+            substeps.style.color = 'black';
+            stepElem[i].appendChild(substeps);
+
+            const ss_dl = document.createElement('LI');
+            ss_dl.innerHTML = 'Download';
+            ss_dl.classList.add('progress-step');
+            ss_dl.style.color = '#090';
+            substeps.appendChild(ss_dl);
+
+            const ss_up = document.createElement('LI');
+            ss_up.innerHTML = 'Unpack';
+            substeps.appendChild(ss_up);
+
+
+            const ss_flash = document.createElement('LI');
+            ss_flash.innerHTML = 'Flash';
+            ss_flash.classList.add('progress-step');
+            substeps.appendChild(ss_flash);
+
+
             const dlprogress = document.createElement('PROGRESS');
             const flashprogress = document.createElement('PROGRESS');
             flashprogress.max = 100;
             flashprogress.value = 0;
-            stepElem[i].appendChild(dlprogress);
-            stepElem[i].appendChild(flashprogress);
+            ss_dl.appendChild(dlprogress);
+            ss_flash.appendChild(flashprogress);
 
             const xzResponse = await fetch(url);
 
@@ -140,6 +177,10 @@ async function runScript(device, di, image, script) {
                         if (done) break;
                         received += value.byteLength;
                         dlprogress.value = received;
+                        if (dlprogress.value === dlprogress.max) {
+                            ss_dl.style.color = '#ddd';
+                            ss_up.style.color = '#090';
+                        }
                         controller.enqueue(value);
                     }
                     controller.close();
@@ -148,11 +189,13 @@ async function runScript(device, di, image, script) {
 
 
             const reader = new xzwasm.XzReadableStream(res.body);
-            console.warn('---------');
             await fastbootFlash(device, step['partition'], reader, rawSize, function (progress) {
                 flashprogress.value = progress * 100;
+                ss_up.style.color = '#ddd';
+                ss_flash.style.color = '#090';
             });
-            console.warn('===============');
+
+            stepElem[i].removeChild(substeps);
         }
     }
 }
@@ -370,7 +413,6 @@ async function fastbootFlash(device, partition, reader, rawsize, progress) {
     const MB = 1024 * 1024;
     let size = rawsize;
     const response = new Response(reader);
-    console.error("FLASHING SIZE A", size);
 
     // Add a slot suffix if needed
     let has_slot = await fastbootGetvar(device, 'has-slot:' + partition) === "yes";
@@ -412,6 +454,61 @@ async function fastbootFlash(device, partition, reader, rawsize, progress) {
     }
 }
 
+function updateReleasesRow(tr) {
+    const codename = tr.dataset.codename;
+    const serial = tr.dataset.serial;
+    let releases = [];
+    if (bpo !== null && codename !== null) {
+        for (let i = 0; i < bpo.releases.length; i++) {
+            let releaseName = bpo.releases[i].name;
+            for (let j = 0; j < bpo.releases[i].devices.length; j++) {
+                if (bpo.releases[i].devices[j].name === codename) {
+                    releases.push({
+                        'name': releaseName, 'builds': bpo.releases[i].devices[j].interfaces
+                    });
+                }
+            }
+        }
+    }
+
+    console.log('releases for', codename, 'are', releases);
+
+    const td_product = document.querySelector('#devices tr[data-serial="' + serial + '"] td.col-product');
+    const td_pick = document.querySelector('#devices tr[data-serial="' + serial + '"] td.col-pick');
+
+    const bubbles = document.querySelectorAll('#devices tr[data-serial="' + serial + '"] span.release');
+    for (let i = 0; i < bubbles.length; i++) {
+        td_product.removeChild(bubbles[i]);
+    }
+    td_pick.innerHTML = '';
+
+    releases.sort(sortRelease);
+    releases.reverse();
+
+    for (let i = 0; i < releases.length; i++) {
+        const bubble = document.createElement('SPAN');
+        bubble.classList.add('release');
+        bubble.classList.add('label-latest');
+        bubble.innerText = releases[i]['name'];
+        td_product.appendChild(bubble);
+    }
+    if (releases.length > 0) {
+        const btn = document.createElement('BUTTON');
+        btn.innerHTML = '&raquo;';
+        btn.dataset.serial = serial;
+        btn.dataset.codename = codename;
+        btn.addEventListener('click', selectDevice);
+        td_pick.appendChild(btn);
+    }
+}
+
+function updateReleases() {
+    const rows = document.querySelectorAll('#devices tr');
+    for (let i = 0; i < rows.length; i++) {
+        updateReleasesRow(rows[i]);
+    }
+}
+
 async function onConnectDevice(device) {
     console.log('connect', device);
 
@@ -429,8 +526,10 @@ async function onConnectDevice(device) {
 
     const td_serial = document.createElement('TD');
     const td_product = document.createElement('TD');
+    td_product.classList.add('col-product');
     const td_slot = document.createElement('TD');
     const td_pick = document.createElement('TD');
+    td_pick.classList.add('col-pick');
 
     td_product.innerHTML = '<div class="spinner"></div>';
     td_slot.innerHTML = '<div class="spinner"></div>';
@@ -474,16 +573,33 @@ async function onConnectDevice(device) {
 
 
     let codename = null;
+    let codenames = [];
     for (let i = 0; i < deviceinfo.length; i++) {
         if (deviceinfo[i].filter['product'] === product) {
-            codename = deviceinfo[i].name;
+            if (codename === null) {
+                codename = deviceinfo[i].name;
+            }
+            codenames.push(deviceinfo[i].name);
             row.dataset.codename = codename;
         }
     }
     if (codename === null) {
         td_product.innerHTML = 'Unknown device (' + product + ')';
     } else {
-        td_product.innerHTML = codename;
+        if (codenames.length > 1) {
+            let selector = document.createElement('SELECT');
+            for (let c = 0; c < codenames.length; c++) {
+                const option = document.createElement('OPTION');
+                option.value = codenames[c];
+                option.innerText = codenames[c];
+                selector.appendChild(option);
+            }
+            td_product.innerText = '';
+            td_product.appendChild(selector);
+            selector.setAttribute("onchange", "changeCodename(this)");
+        } else {
+            td_product.innerHTML = codename;
+        }
     }
     if (!unlocked) {
         td_product.innerHTML += ' [locked]';
@@ -495,35 +611,15 @@ async function onConnectDevice(device) {
         td_slot.innerHTML = 'No slots';
     }
 
-    let releases = [];
-    if (bpo !== null && codename !== null) {
-        for (let i = 0; i < bpo.releases.length; i++) {
-            let releaseName = bpo.releases[i].name;
-            for (let j = 0; j < bpo.releases[i].devices.length; j++) {
-                if (bpo.releases[i].devices[j].name === codename) {
-                    releases.push({
-                        'name': releaseName, 'builds': bpo.releases[i].devices[j].interfaces
-                    });
-                }
-            }
-        }
-    }
-
-    releases.sort(sortRelease);
-    releases.reverse();
-
-    for (let i = 0; i < releases.length; i++) {
-        td_product.innerHTML += '<span class="release label-latest">' + releases[i]['name'] + '</span>';
-    }
-    if (releases.length > 0) {
-        const btn = document.createElement('BUTTON');
-        btn.innerHTML = '&raquo;';
-        btn.dataset.serial = device.serialNumber;
-        btn.dataset.codename = codename;
-        btn.addEventListener('click', selectDevice);
-        td_pick.appendChild(btn);
-    }
+    updateReleases();
     handles[device.serialNumber] = device;
+}
+
+function changeCodename(widget) {
+    const row = widget.parentElement.parentElement;
+    row.dataset.codename = widget.value;
+    updateReleases();
+    return true;
 }
 
 function onConnect(event) {
@@ -582,5 +678,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         return response.json();
     }).then(function (data) {
         bpo = data;
+        updateReleases();
     });
 });
