@@ -17,6 +17,10 @@
                 padding: 4px 8px;
             }
 
+            button:disabled {
+                background: #ccc;
+            }
+
             table#devices {
                 background: #eee;
                 color: black;
@@ -184,6 +188,7 @@
             </div>
             <div id="flasher" style="display: none;">
                 <h2>Flashing</h2>
+                <button id="start">Start flashing</button>
                 <ol id="steps"></ol>
             </div>
         </main>

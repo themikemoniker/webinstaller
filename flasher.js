@@ -107,6 +107,7 @@ function filterReleases(codename) {
 
 async function runScript(device, di, image, script) {
     const steplist = document.getElementById('steps');
+    const startButton = document.getElementById('start');
     let stepElem = {};
     for (let i = 0; i < script.length; i++) {
         const step = script[i];
@@ -116,88 +117,91 @@ async function runScript(device, di, image, script) {
         stepElem[i] = elem;
     }
 
-    for (let i = 0; i < script.length; i++) {
-        const step = script[i];
-        stepElem[i].style.color = '#090';
-        if (i > 0) {
-            stepElem[i - 1].style.color = '#aaa';
-        }
-
-        if ("cmd" in step) {
-            let result = await fastbootCommand(device, step['cmd'])
-            if (result[0] !== 'OKAY') {
-                stepElem[i].style.color = '#f00';
-                return;
+    startButton.addEventListener('click', async function () {
+        startButton.setAttribute('disabled', 'disabled');
+        for (let i = 0; i < script.length; i++) {
+            const step = script[i];
+            stepElem[i].style.color = '#090';
+            if (i > 0) {
+                stepElem[i - 1].style.color = '#aaa';
             }
-        } else if ("flash" in step) {
-            const suffix = step["flash"];
-            const url = image[suffix].url;
-            const rawSize = image[suffix].size;
-            console.log("Flashing", url);
 
-            const substeps = document.createElement('OL');
-            substeps.style.display = 'block';
-            substeps.style.color = 'black';
-            stepElem[i].appendChild(substeps);
-
-            const ss_dl = document.createElement('LI');
-            ss_dl.innerHTML = 'Download';
-            ss_dl.classList.add('progress-step');
-            ss_dl.style.color = '#090';
-            substeps.appendChild(ss_dl);
-
-            const ss_up = document.createElement('LI');
-            ss_up.innerHTML = 'Unpack';
-            substeps.appendChild(ss_up);
-
-
-            const ss_flash = document.createElement('LI');
-            ss_flash.innerHTML = 'Flash';
-            ss_flash.classList.add('progress-step');
-            substeps.appendChild(ss_flash);
-
-
-            const dlprogress = document.createElement('PROGRESS');
-            const flashprogress = document.createElement('PROGRESS');
-            flashprogress.max = 100;
-            flashprogress.value = 0;
-            ss_dl.appendChild(dlprogress);
-            ss_flash.appendChild(flashprogress);
-
-            const xzResponse = await fetch(url);
-
-            const contentLength = xzResponse.headers.get('content-length');
-            dlprogress.max = parseInt(contentLength, 10);
-            let received = 0;
-            const res = new Response(new ReadableStream({
-                async start(controller) {
-                    const reader = xzResponse.body.getReader();
-                    for (; ;) {
-                        const {done, value} = await reader.read();
-                        if (done) break;
-                        received += value.byteLength;
-                        dlprogress.value = received;
-                        if (dlprogress.value === dlprogress.max) {
-                            ss_dl.style.color = '#ddd';
-                            ss_up.style.color = '#090';
-                        }
-                        controller.enqueue(value);
-                    }
-                    controller.close();
+            if ("cmd" in step) {
+                let result = await fastbootCommand(device, step['cmd'])
+                if (result[0] !== 'OKAY') {
+                    stepElem[i].style.color = '#f00';
+                    return;
                 }
-            }));
+            } else if ("flash" in step) {
+                const suffix = step["flash"];
+                const url = image[suffix].url;
+                const rawSize = image[suffix].size;
+                console.log("Flashing", url);
+
+                const substeps = document.createElement('OL');
+                substeps.style.display = 'block';
+                substeps.style.color = 'black';
+                stepElem[i].appendChild(substeps);
+
+                const ss_dl = document.createElement('LI');
+                ss_dl.innerHTML = 'Download';
+                ss_dl.classList.add('progress-step');
+                ss_dl.style.color = '#090';
+                substeps.appendChild(ss_dl);
+
+                const ss_up = document.createElement('LI');
+                ss_up.innerHTML = 'Unpack';
+                substeps.appendChild(ss_up);
 
 
-            const reader = new xzwasm.XzReadableStream(res.body);
-            await fastbootFlash(device, step['partition'], reader, rawSize, function (progress) {
-                flashprogress.value = progress * 100;
-                ss_up.style.color = '#ddd';
-                ss_flash.style.color = '#090';
-            });
+                const ss_flash = document.createElement('LI');
+                ss_flash.innerHTML = 'Flash';
+                ss_flash.classList.add('progress-step');
+                substeps.appendChild(ss_flash);
 
-            stepElem[i].removeChild(substeps);
+
+                const dlprogress = document.createElement('PROGRESS');
+                const flashprogress = document.createElement('PROGRESS');
+                flashprogress.max = 100;
+                flashprogress.value = 0;
+                ss_dl.appendChild(dlprogress);
+                ss_flash.appendChild(flashprogress);
+
+                const xzResponse = await fetch(url);
+
+                const contentLength = xzResponse.headers.get('content-length');
+                dlprogress.max = parseInt(contentLength, 10);
+                let received = 0;
+                const res = new Response(new ReadableStream({
+                    async start(controller) {
+                        const reader = xzResponse.body.getReader();
+                        for (; ;) {
+                            const {done, value} = await reader.read();
+                            if (done) break;
+                            received += value.byteLength;
+                            dlprogress.value = received;
+                            if (dlprogress.value === dlprogress.max) {
+                                ss_dl.style.color = '#ddd';
+                                ss_up.style.color = '#090';
+                            }
+                            controller.enqueue(value);
+                        }
+                        controller.close();
+                    }
+                }));
+
+
+                const reader = new xzwasm.XzReadableStream(res.body);
+                await fastbootFlash(device, step['partition'], reader, rawSize, function (progress) {
+                    flashprogress.value = progress * 100;
+                    ss_up.style.color = '#ddd';
+                    ss_flash.style.color = '#090';
+                });
+
+                stepElem[i].removeChild(substeps);
+            }
         }
-    }
+    });
 }
 
 function selectImage(event) {
