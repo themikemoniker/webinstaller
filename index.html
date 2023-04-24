@@ -43,7 +43,6 @@
             .boxes .box {
                 background: #eee;
                 flex-grow: 1;
-                width: 33%;
                 padding: 10px;
             }
 
@@ -72,6 +71,17 @@
                 }
                 100% {
                     transform: rotate(360deg);
+                }
+            }
+
+            @media screen and (max-width: 710px) {
+                .col-product select {
+                    display: block;
+                    width: 100%;
+                }
+
+                div.boxes {
+                    flex-direction: column;
                 }
             }
         </style>
