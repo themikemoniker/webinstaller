@@ -92,7 +92,6 @@ function openDB() {
             resolve(db);
         };
         dbReq.onupgradeneeded = (event) => {
-            console.error("Running cache update");
             event.target.result.createObjectStore("images", {keyPath: "name"});
         }
     });
@@ -202,7 +201,6 @@ function selectImage(event) {
     const codename = this.dataset.codename;
     const serial = this.dataset.serial;
     const imageKey = this.dataset.image;
-    console.log('Flash', imageKey, 'to', serial);
     const oldScreen = document.getElementById('selection');
     const newScreen = document.getElementById('flasher');
     oldScreen.style.display = 'none';
@@ -394,7 +392,6 @@ async function fastbootRaw(device, data, progress) {
 
 async function fastbootDownload(device, partition, split, progress) {
     const size = split.data.byteLength;
-    console.log("CHUNK DOWNLOAD", readableFileSize(size));
     const sizeHex = size.toString(16).padStart(8, "0");
 
     let res = await fastbootCommand(device, 'download:' + sizeHex);
@@ -402,7 +399,6 @@ async function fastbootDownload(device, partition, split, progress) {
         console.error('Failed download command', res[1]);
     }
     await fastbootRaw(device, split.data, progress);
-    console.log("Await resp");
     return await fastbootCheckResponse(device);
 }
 
@@ -467,8 +463,6 @@ function updateReleasesRow(tr) {
             }
         }
     }
-
-    console.log('releases for', codename, 'are', releases);
 
     const td_product = document.querySelector('#devices tr[data-serial="' + serial + '"] td.col-product');
     const td_pick = document.querySelector('#devices tr[data-serial="' + serial + '"] td.col-pick');
