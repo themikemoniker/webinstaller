@@ -26,6 +26,19 @@ const deviceinfo = [
         ]
     },
     {
+        'name': 'oneplus-fajita',
+        'nicename': 'OnePlus 6t',
+        'filter': {
+            'product': 'sdm845'
+        },
+        'script': [
+            {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+            {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+            {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+            {"cmd": "reboot", name: "Reboot"},
+        ]
+    },
+    {
         'name': 'shift-axolotl',
         'nicename': 'SHIFT 6MQ',
         'filter': {
