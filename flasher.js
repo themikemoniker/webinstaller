@@ -27,7 +27,7 @@ const deviceinfo = [
     },
     {
         'name': 'oneplus-fajita',
-        'nicename': 'OnePlus 6t',
+        'nicename': 'OnePlus 6T',
         'filter': {
             'product': 'sdm845'
         },
@@ -40,7 +40,7 @@ const deviceinfo = [
     },
     {
         'name': 'shift-axolotl',
-        'nicename': 'SHIFT 6MQ',
+        'nicename': 'SHIFT SHIFT6mq',
         'filter': {
             'product': 'sdm845'
         },
