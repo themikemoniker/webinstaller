@@ -3,14 +3,6 @@ let handles = {};
 let bpo = null;
 let allImages = {};
 
-const IfName = {
-    'plasma-mobile': 'Plasma Mobile',
-    'phosh': 'Phosh',
-    'gnome-mobile': 'Gnome Mobile',
-    'sxmo-de-sway': 'SXMO Sway',
-    'sxmo-de-dwm': 'SXMO Dwm',
-}
-
 const deviceinfo = [
     {
         'name': 'oneplus-enchilada',
@@ -298,6 +290,7 @@ function selectDevice(event) {
     for (let k = 0; k < releases.length; k++) {
         for (let i = 0; i < releases[k]['interfaces'].length; i++) {
             const IntfName = releases[k]['interfaces'][i]['name'];
+            const IntfPrettyName = releases[k]['interfaces'][i].pretty_name;
 
             let realImages = {};
             for (let j = 0; j < releases[k]['interfaces'][i]['images'].length; j++) {
@@ -320,7 +313,7 @@ function selectDevice(event) {
                         const edge_row = document.createElement('TR');
                         const td_ui = document.createElement('TD');
                         const td_act = document.createElement('TD');
-                        td_ui.innerHTML = IfName[IntfName];
+                        td_ui.innerHTML = IntfPrettyName;
                         edge_row.appendChild(td_ui);
                         edge_row.appendChild(td_act);
                         const act_btn = document.createElement('BUTTON');
@@ -341,7 +334,7 @@ function selectDevice(event) {
                         const stable_row = document.createElement('TR');
                         const td_ui = document.createElement('TD');
                         const td_act = document.createElement('TD');
-                        td_ui.innerHTML = IfName[IntfName];
+                        td_ui.innerHTML = IntfPrettyName;
                         stable_row.appendChild(td_ui);
                         stable_row.appendChild(td_act);
                         const act_btn = document.createElement('BUTTON');
@@ -369,7 +362,7 @@ function selectDevice(event) {
                 row.appendChild(td_date);
                 row.appendChild(td_action);
 
-                td_name.innerHTML = IfName[IntfName];
+                td_name.innerHTML = IntfPrettyName;
                 td_release.innerHTML = releases[k]['name'];
                 td_date.innerHTML = image['timestamp'];
 
