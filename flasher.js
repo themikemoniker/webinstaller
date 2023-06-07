@@ -238,6 +238,7 @@ async function runScript(device, di, image, script) {
                         ss_flash.style.color = '#F00';
                         flasherError("Fastboot failure: <br>" + err.message);
                     }
+                    console.log(err);
                     throw new Error("Flasher failed");
                 }
             }
