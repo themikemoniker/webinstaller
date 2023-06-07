@@ -98,16 +98,34 @@ function filterReleases(codename) {
     for (let i = 0; i < releases.length; i++) {
         const devices = releases[i].devices;
         const releaseName = releases[i].name;
+        const releasePrettyName = releases[i].name;
 
         for (let j = 0; j < devices.length; j++) {
             if (devices[j].name === codename) {
                 result.push({
-                    name: releaseName, interfaces: devices[j].interfaces,
+                    name: releaseName,
+                    pretty_name: releasePrettyName,
+                    interfaces: devices[j].interfaces,
                 });
             }
         }
     }
     return result;
+}
+
+function getDevicePrettyName(codename) {
+    const releases = bpo.releases;
+    for (let i = 0; i < releases.length; i++) {
+        const devices = releases[i].devices;
+        const releaseName = releases[i].name;
+
+        for (let j = 0; j < devices.length; j++) {
+            if (devices[j].name === codename) {
+                return devices[j].pretty_name;
+            }
+        }
+    }
+    return undefined;
 }
 
 function flasherError(message) {
@@ -127,6 +145,9 @@ async function runScript(device, di, image, script) {
         steplist.appendChild(elem);
         stepElem[i] = elem;
     }
+
+    const imageName = document.getElementById('image-name');
+    imageName.innerHTML = image[".img.xz"].name;
 
     startButton.addEventListener('click', async function () {
         startButton.setAttribute('disabled', 'disabled');
@@ -265,7 +286,10 @@ function selectDevice(event) {
     const serial = this.dataset.serial;
 
     const sdn = document.getElementById('select-device-name');
-    sdn.innerHTML = codename;
+    sdn.innerHTML = getDevicePrettyName(codename);
+
+    const sdpn = document.getElementById('select-device-codename');
+    sdpn.innerHTML = codename;
 
     console.log('Using device', activeDevice);
     const oldScreen = document.getElementById('supported');
@@ -345,6 +369,9 @@ function selectDevice(event) {
                         act_btn.addEventListener('click', selectImage);
                         td_act.appendChild(act_btn);
 
+                        const stableVersionPretty = document.getElementById('stable-version');
+                        stableVersionPretty.innerHTML = releases[k].pretty_name;
+
                         latestStableTable.appendChild(stable_row);
                     }
                 }
@@ -363,7 +390,7 @@ function selectDevice(event) {
                 row.appendChild(td_action);
 
                 td_name.innerHTML = IntfPrettyName;
-                td_release.innerHTML = releases[k]['name'];
+                td_release.innerHTML = releases[k].pretty_name;
                 td_date.innerHTML = image['timestamp'];
 
                 const btn = document.createElement('BUTTON');

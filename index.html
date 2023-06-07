@@ -172,16 +172,21 @@
                 <h2>Image selection</h2>
                 <div class="boxes">
                     <div class="deviceinfo box">
-                        <h3 id="select-device-name"></h3>
+                        <h3>Device info</h3>
+                        <p><b>Name:</b></p>
+                        <p><span id="select-device-name"></span></p>
+                        <p><b>Codename:</b></p>
+                        <p><span id="select-device-codename"></span></p>
                     </div>
                     <div class="stable box">
                         <h3>Latest stable</h3>
-                        <p>Recommended builds for trying out postmarketOS</p>
+                        <p><i>Recommended builds for trying out postmarketOS</i></p>
+                        <p><b>Version:</b> <span id="stable-version"></span></p>
                         <table id="stable-images"></table>
                     </div>
                     <div class="edge box">
                         <h3>Latest edge</h3>
-                        <p>Untested experimental builds</p>
+                        <p><i>Untested experimental builds</i></p>
                         <table id="edge-images"></table>
                     </div>
                 </div>
@@ -194,6 +199,7 @@
             </div>
             <div id="flasher" style="display: none;">
                 <h2>Flashing</h2>
+                <p><b>Image:</b> <span id="image-name"></span></p>
                 <button id="start">Start flashing</button>
                 <ol id="steps"></ol>
                 <div id="flasher-error"></div>
