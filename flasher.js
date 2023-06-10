@@ -34,7 +34,7 @@ const deviceinfo = [
         'name': 'shift-axolotl',
         'nicename': 'SHIFT SHIFT6mq',
         'filter': {
-            'product': 'sdm845'
+            'product': ['sdm845', 'SHIFT6mq']
         },
         'script': [
             {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
@@ -643,12 +643,21 @@ async function onConnectDevice(device) {
     let codename = null;
     let codenames = [];
     for (let i = 0; i < deviceinfo.length; i++) {
-        if (deviceinfo[i].filter['product'] === product) {
-            if (codename === null) {
-                codename = deviceinfo[i].name;
+        let checklist = [];
+        if (Array.isArray(deviceinfo[i].filter['product'])) {
+            checklist = deviceinfo[i].filter['product'];
+        } else {
+            checklist = [deviceinfo[i].filter['product']];
+        }
+        for (let j = 0; j < checklist.length; j++) {
+            if (checklist[j] === product) {
+                if (codename === null) {
+                    codename = deviceinfo[i].name;
+                }
+                codenames.push(deviceinfo[i].name);
+                row.dataset.codename = codename;
+                break;
             }
-            codenames.push(deviceinfo[i].name);
-            row.dataset.codename = codename;
         }
     }
     if (codename === null) {
