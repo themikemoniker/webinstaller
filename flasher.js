@@ -68,6 +68,20 @@ const deviceinfo = [
             {"cmd": "reboot", name: "Reboot"},
         ]
     },
+    {
+        'name': 'fairphone-fp5',
+        'nicename': 'Fairphone 5',
+        'filter': {
+            'product': 'FP5'
+        },
+        'script': [
+            {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+            {"cmd": "erase:vendor_boot", name: "Erase vendor_boot partition"},
+            {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+            {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+            {"cmd": "reboot", name: "Reboot"},
+        ]
+    },
 ];
 
 function readableFileSize(size) {
