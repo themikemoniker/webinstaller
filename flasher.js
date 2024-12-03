@@ -149,6 +149,38 @@ function flasherError(message) {
 }
 
 async function runScript(device, di, image, script) {
+    console.log("di")
+    console.log(di)
+    console.log("image")
+    console.log(image)
+    console.log("script")
+    console.log(script)
+    di = deviceinfo[0];
+    image = {
+        "-boot.img.xz": {
+            "name": "boot.img.xz",
+            // "timestamp": "2024-11-13T06:19:00",
+            // "size": 18484820,
+            "url": "https://elasticbeanstalk-us-west-2-190312923858.s3.us-west-2.amazonaws.com/boot.img.xz",
+            // "sha256": "f54c6e9c5a54cac4617465b018f4cfb6a526f8c4d527b755e72aa711fa774c1c",
+            // "sha512": "d51e14715b4fff552a5075ceeb3de4f79525e9c224e7aa69e51ea9dbdfa9de2475e83ff3d2e4af0793fd425c81f9bed55066385115b421929e7fbd638d76e0a5"
+        },
+        ".img.xz": {
+            "name": "system.img.xz",
+            // "timestamp": "2024-11-13T06:19:00",
+            // "size": 730042556,
+            "url": "https://elasticbeanstalk-us-west-2-190312923858.s3.us-west-2.amazonaws.com/system.img.xz",
+            // "sha256": "97bee0c367a55582f0eaacd9ef804bfdd0c9e8d8878fe5504722dcf553e56cfd",
+            // "sha512": "9dd5faa888292d8cd00e8be951033f9ee1e2a1a25da29eefd739208b10fae895be06d6f927bb3598e6c23faa44a66e9f49ccde7aa7c4623caa7bb3365f51f281"
+        }
+    }
+    script = [
+        {"cmd": "erase:dtbo", name: "Erase DTBO partition"},
+        {"flash": ".img.xz", partition: 'userdata', name: "Flash rootfs"},
+        {"flash": "-boot.img.xz", partition: 'boot', name: "Flash boot partition"},
+        {"cmd": "reboot", name: "Reboot"},
+    ];
+
     const steplist = document.getElementById('steps');
     const startButton = document.getElementById('start');
     let stepElem = {};
@@ -256,6 +288,7 @@ async function runScript(device, di, image, script) {
 
                     stepElem[i].removeChild(substeps);
                 } catch (err) {
+                    // TODO Flasher failed here, i nee to print out 
                     if (err instanceof TypeError) {
                         if (err.message === "Failed to fetch") {
                             ss_dl.style.color = '#F00';
@@ -291,6 +324,7 @@ function selectImage(event) {
         }
     }
     const steps = di['script'];
+
     runScript(activeDevice, di, allImages[imageKey], steps);
 }
 
@@ -766,6 +800,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     fetch('https://images.postmarketos.org/bpo/index.json').then(function (response) {
+        // TODO: 1 hardcode json response
+
         return response.json();
     }).then(function (data) {
         bpo = data;
@@ -788,3 +824,52 @@ document.addEventListener("DOMContentLoaded", async function () {
         suppTable.appendChild(row);
     }
 });
+
+document.getElementById("flash-images").addEventListener("click", async () => {
+    const bootFileInput = document.getElementById("boot-image-file");
+    const systemFileInput = document.getElementById("system-image-file");
+    const button = document.getElementById("flash-images");
+
+    // Disable button and show loading state
+    button.disabled = true;
+    button.textContent = "Flashing...";
+
+    // if (bootFileInput.files.length === 0 || systemFileInput.files.length === 0) {
+    //     alert("Please select both boot and system images before flashing.");
+    //     button.disabled = false;
+    //     button.textContent = "Flash Images";
+    //     return;
+    // }
+
+    const bootImageBlob = bootFileInput.files[0];
+    const systemImageBlob = systemFileInput.files[0];
+
+    try {
+        // Flash boot image
+        console.log("Flashing boot image...");
+        await new Promise(resolve => setTimeout(resolve, 0)); // Allow UI update
+        await flashImage("boot", bootImageBlob);
+
+        // // Flash system image
+        // console.log("Flashing system image...");
+        // await new Promise(resolve => setTimeout(resolve, 0)); // Allow UI update
+        // await flashImage("userdata", systemImageBlob);
+
+        alert("Flashing completed successfully!");
+    } catch (error) {
+        console.error("Flashing error:", error);
+        alert("An error occurred during flashing.");
+    } finally {
+        // Re-enable button and reset text
+        button.disabled = false;
+        button.textContent = "Flash Images";
+    }
+});
+
+async function flashImage(partition, imageBlob) {
+    console.log(`Preparing to flash ${partition}...`);
+    const reader = new Response(imageBlob).body; // Stream for flashing
+    await fastbootFlash(activeDevice, partition, reader, imageBlob.size, progress => {
+        console.log(`Flashing ${partition}: ${Math.round(progress * 100)}%`);
+    });
+}

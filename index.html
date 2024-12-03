@@ -162,6 +162,16 @@
                     it.
                 </p>
                 <button id="request-device">Give access</button>
+
+                <!-- Add inputs for file and URL -->
+                <input type="file" id="boot-image-file" accept=".img,.xz">
+                <label for="boot-image-file">Select Boot Image</label>
+                <br>
+                <input type="file" id="system-image-file" accept=".img,.xz">
+                <label for="system-image-file">Select System Image</label>
+                <br>
+                <button id="flash-images">Flash Images</button>
+
                 <table id="devices">
                 </table>
                 <h4>Supported devices</h4>
@@ -206,6 +216,7 @@
                 <h2>Flashing</h2>
                 <p><b>Image:</b> <span id="image-name"></span></p>
                 <button id="start">Start flashing</button>
+                <button id="myButton">Start flashing nixOS onto OnePlus six</button>
                 <ol id="steps"></ol>
                 <div id="flasher-error"></div>
             </div>
