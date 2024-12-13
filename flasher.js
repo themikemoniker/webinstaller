@@ -155,6 +155,8 @@ async function runScript(device, di, image, script) {
     console.log(image)
     console.log("script")
     console.log(script)
+    console.log("fromRaw")
+    console.log(fromRaw)
     di = deviceinfo[0];
     image = {
         "-boot.img.xz": {
@@ -256,49 +258,25 @@ async function runScript(device, di, image, script) {
 
                 try {
                     const xzResponse = await fetch(url);
-
-                    const contentLength = xzResponse.headers.get('content-length');
-                    dlprogress.max = parseInt(contentLength, 10);
-                    let received = 0;
-                    const res = new Response(new ReadableStream({
-                        async start(controller) {
-                            const reader = xzResponse.body.getReader();
-                            for (; ;) {
-                                const {done, value} = await reader.read();
-                                if (done) break;
-                                received += value.byteLength;
-                                dlprogress.value = received;
-                                if (dlprogress.value === dlprogress.max) {
-                                    ss_dl.style.color = '#ddd';
-                                    ss_up.style.color = '#090';
-                                }
-                                controller.enqueue(value);
-                            }
-                            controller.close();
-                        }
-                    }));
-
-
+                    const rawBuffer = await xzResponse.arrayBuffer(); // Get raw image buffer
+                
+                    // Convert the raw image to sparse format using fromRaw
+                    const sparseBuffer = fromRaw(rawBuffer);
+                
+                    // Pass the sparse image to the fastbootFlash process
+                    const sparseBlob = new Blob([sparseBuffer]);
+                    const res = new Response(sparseBlob);
+                
                     const reader = new xzwasm.XzReadableStream(res.body);
                     await fastbootFlash(device, step['partition'], reader, rawSize, function (progress) {
                         flashprogress.value = progress * 100;
                         ss_up.style.color = '#ddd';
                         ss_flash.style.color = '#090';
                     });
-
+                
                     stepElem[i].removeChild(substeps);
                 } catch (err) {
-                    // TODO Flasher failed here, i nee to print out 
-                    if (err instanceof TypeError) {
-                        if (err.message === "Failed to fetch") {
-                            ss_dl.style.color = '#F00';
-                            flasherError("Failed to download the image: <br>" + err.message + '<br>URL: <a href="' + url + '">' + url + '</a>');
-                        }
-                    } else if (err instanceof DOMException) {
-                        ss_flash.style.color = '#F00';
-                        flasherError("Fastboot failure: <br>" + err.message);
-                    }
-                    console.log(err);
+                    console.error(err);
                     throw new Error("Flasher failed");
                 }
             }
